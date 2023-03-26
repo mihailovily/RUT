@@ -1,8 +1,10 @@
 import os
 from telebot import types
 import telebot
+from music import yamusic
 
-token = open('token.txt').readline()
+
+token = open('tokens/telegram.txt').readline()
 bot = telebot.TeleBot(token)  # инит
 
 
@@ -14,7 +16,7 @@ def send_welcome(message):
     butt_music = types.KeyboardButton(text='YandexMusic')
     butt_YT = types.KeyboardButton(text='YouTube')
     butt_magnet = types.KeyboardButton(text='Magnet link')
-    keyboard.add(butt_music, butt_YT, butt_YT)
+    keyboard.add(butt_music, butt_YT, butt_magnet)
     bot.reply_to(message, "Hello, " + str(message.from_user.first_name), reply_markup=keyboard)  # здороваемся
     bot.reply_to(message, "You can send me link to any YouTube video, YandexMusic song or magnet-link and I'll send you file. Author: @mihailovily")
 
@@ -28,16 +30,18 @@ def find_music(message):
 
 def send_music(message):
     usr_id = str(message.from_user.id)
-    bot.send_message(usr_id, 'YM is under constructon')
+    title, performer = yamusic.track_dl(message.text).split(' - ')
+    audio = open('track.mp3', 'rb')
+    bot.send_audio(usr_id, audio, performer=performer, title=title)
 
 
 @bot.message_handler(commands=['video'])
 @bot.message_handler(regexp="YouTube")
 def find_music(message):
     bot.reply_to(message, "I'm waiting your link to YouTube")
-    bot.register_next_step_handler(message, send_music)
+    bot.register_next_step_handler(message, send_yt)
 
-def send_music(message):
+def send_yt(message):
     usr_id = str(message.from_user.id)
     bot.send_message(usr_id, 'YouTube is under constructon')
 
@@ -46,9 +50,9 @@ def send_music(message):
 @bot.message_handler(regexp="Magnet link")
 def find_music(message):
     bot.reply_to(message, "I'm waiting your magnet link")
-    bot.register_next_step_handler(message, send_music)
+    bot.register_next_step_handler(message, send_torrent)
 
-def send_music(message):
+def send_torrent(message):
     usr_id = str(message.from_user.id)
     bot.send_message(usr_id, 'Torrents are under constructon')
 
