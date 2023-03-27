@@ -2,6 +2,7 @@ import os
 from telebot import types
 import telebot
 from music import yamusic
+from video import youtube
 
 
 token = open('tokens/telegram.txt').readline()
@@ -34,16 +35,37 @@ def send_music(message):
     audio = open('track.mp3', 'rb')
     bot.send_audio(usr_id, audio, performer=performer, title=title)
 
-
+            
 @bot.message_handler(commands=['video'])
 @bot.message_handler(regexp="YouTube")
 def find_music(message):
     bot.reply_to(message, "I'm waiting your link to YouTube")
+    bot.register_next_step_handler(message, choose_res)
+
+def choose_res(message):
+    global link
+    keyboard = types.ReplyKeyboardMarkup(True)  # генерируем клаву
+    link = message.text
+    button_360p = types.KeyboardButton(text="360p")
+    button_480p = types.KeyboardButton(text="480p")
+    button_720p = types.KeyboardButton(text="720p")
+    button_1080p = types.KeyboardButton(text="1080p")
+    keyboard.add(button_360p, button_480p, button_720p, button_1080p)
+    bot.reply_to(message, 'Choose quality:', reply_markup=keyboard)
     bot.register_next_step_handler(message, send_yt)
 
 def send_yt(message):
     usr_id = str(message.from_user.id)
-    bot.send_message(usr_id, 'YouTube is under constructon')
+    bot.reply_to(message, 'Downloading')
+    youtube.dl_video(link, message.text)
+    video = open('video.mp4', 'rb')
+    keyboard = types.ReplyKeyboardMarkup(True)  # генерируем клаву
+    butt_music = types.KeyboardButton(text='YandexMusic')
+    butt_YT = types.KeyboardButton(text='YouTube')
+    butt_magnet = types.KeyboardButton(text='Magnet link')
+    keyboard.add(butt_music, butt_YT, butt_magnet)
+    bot.send_video(usr_id, video, reply_markup=keyboard)
+
 
 
 @bot.message_handler(commands=['magnet'])
