@@ -34,6 +34,7 @@ def send_music(message):
     title, performer = yamusic.track_dl(message.text).split(' - ')
     audio = open('track.mp3', 'rb')
     bot.send_audio(usr_id, audio, performer=performer, title=title)
+    os.remove('track.mp3')
 
             
 @bot.message_handler(commands=['video'])
@@ -57,14 +58,18 @@ def choose_res(message):
 def send_yt(message):
     usr_id = str(message.from_user.id)
     bot.reply_to(message, 'Downloading')
-    youtube.dl_video(link, message.text)
-    video = open('video.mp4', 'rb')
     keyboard = types.ReplyKeyboardMarkup(True)  # генерируем клаву
     butt_music = types.KeyboardButton(text='YandexMusic')
     butt_YT = types.KeyboardButton(text='YouTube')
     butt_magnet = types.KeyboardButton(text='Magnet link')
     keyboard.add(butt_music, butt_YT, butt_magnet)
-    bot.send_video(usr_id, video, reply_markup=keyboard)
+    youtube.dl_video(link, message.text)
+    if 'video.mp4' in os.listdir():
+        video = open('video.mp4', 'rb')
+        bot.send_video(usr_id, video, reply_markup=keyboard)
+        os.remove('video.mp4')
+    else:
+        bot.send_message(usr_id, 'Try another resolution', reply_markup=keyboard)
 
 
 
